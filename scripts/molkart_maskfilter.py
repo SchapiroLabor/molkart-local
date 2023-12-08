@@ -18,14 +18,36 @@ def get_args():
     description = """Segmentation mask filtering"""
 
     # Add parser
-    parser = AP(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = AP(
+        description=description, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     # Sections
-    inputs = parser.add_argument_group(title="Required Input", description="Path to required input file")
-    inputs.add_argument("-r", "--input", dest="input", action="store", required=True, help="File path to input image.")
-    inputs.add_argument("-o", "--output", dest="output", action="store", required=True, help="Path to output image.")
+    inputs = parser.add_argument_group(
+        title="Required Input", description="Path to required input file"
+    )
     inputs.add_argument(
-        "--output_qc", dest="output_qc", action="store", required=False, help="Path to output qc csv file."
+        "-r",
+        "--input",
+        dest="input",
+        action="store",
+        required=True,
+        help="File path to input image.",
+    )
+    inputs.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        action="store",
+        required=True,
+        help="Path to output image.",
+    )
+    inputs.add_argument(
+        "--output_qc",
+        dest="output_qc",
+        action="store",
+        required=False,
+        help="Path to output qc csv file.",
     )
     inputs.add_argument(
         "--min_area",

@@ -96,7 +96,9 @@ def assign_spots2cell(spot_table, cell_mask):
     # Make Cell_ID the first column in gene_counts_df
     gene_counts_df = gene_counts_df.set_index("CellID").reset_index()
 
-    gene_counts_df[spot_table.gene.unique()] = gene_counts_df[spot_table.gene.unique()].astype(int)
+    gene_counts_df[spot_table.gene.unique()] = gene_counts_df[
+        spot_table.gene.unique()
+    ].astype(int)
 
     # Filter out cell_ID = 0 into it's own dataframe called background
     background = gene_counts_df[gene_counts_df["CellID"] == 0]
@@ -119,7 +121,11 @@ if __name__ == "__main__":
 
     ## Read in spot table
     spot_data = pd.read_csv(
-        args.spot_table, names=["x", "y", "z", "gene", "empty"], sep="\t", header=None, index_col=None
+        args.spot_table,
+        names=["x", "y", "z", "gene", "empty"],
+        sep="\t",
+        header=None,
+        index_col=None,
     )
 
     cell_mask = tiff.imread(args.cell_mask)

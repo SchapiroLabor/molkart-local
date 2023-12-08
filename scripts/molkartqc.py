@@ -37,7 +37,13 @@ def summarize_segmasks(cellxgene_table, spots_summary):
     spot_assign_percent = spot_assign_total / spots_summary[1] * 100
     spot_assign_percent = round(spot_assign_percent, 2)
 
-    return (total_cells, avg_area, spot_assign_per_cell, spot_assign_total, spot_assign_percent)
+    return (
+        total_cells,
+        avg_area,
+        spot_assign_per_cell,
+        spot_assign_total,
+        spot_assign_percent,
+    )
 
 
 if __name__ == "__main__":
@@ -64,7 +70,13 @@ if __name__ == "__main__":
     ## Pass on filterqc values
     filterqc = pd.read_csv(
         args.filterqc,
-        names=["below_min_area", "below_percentage", "above_max_area", "above_percentage", "total_labels"],
+        names=[
+            "below_min_area",
+            "below_percentage",
+            "above_max_area",
+            "above_percentage",
+            "total_labels",
+        ],
         header=None,
     )
 
@@ -107,5 +119,7 @@ if __name__ == "__main__":
     print(args.sample_id)
     # Write summary_df to a csv file
     summary_df.to_csv(
-        f"{args.outdir}/{args.sample_id}.{args.segmentation_method}.spot_QC.csv", header=True, index=False
+        f"{args.outdir}/{args.sample_id}.{args.segmentation_method}.spot_QC.csv",
+        header=True,
+        index=False,
     )
