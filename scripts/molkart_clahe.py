@@ -7,7 +7,6 @@ from argparse import ArgumentParser as AP
 from os.path import abspath
 import os
 import numpy as np
-import tifffile as tf
 from skimage.exposure import equalize_adapthist
 from multiprocessing.spawn import import_main_path
 import sys
@@ -17,7 +16,6 @@ import numpy as np
 import tifffile
 import zarr
 import skimage.transform
-from aicsimageio import aics_image as AI
 from ome_types import from_tiff, to_xml
 from os.path import abspath
 from argparse import ArgumentParser as AP
@@ -38,23 +36,65 @@ def get_args():
     description = """Easy-to-use, large scale CLAHE"""
 
     # Add parser
-    parser = AP(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = AP(
+        description=description, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     # Sections
-    inputs = parser.add_argument_group(title="Required Input", description="Path to required input file")
-    inputs.add_argument("-r", "--input", dest="input", action="store", required=True, help="File path to input image.")
-    inputs.add_argument("-o", "--output", dest="output", action="store", required=True, help="Path to output image.")
-    inputs.add_argument(
-        "--cliplimit", dest="clip", action="store", required=True, type=float, default=0.01, help="Clip Limit for CLAHE"
+    inputs = parser.add_argument_group(
+        title="Required Input", description="Path to required input file"
     )
     inputs.add_argument(
-        "--kernel", dest="kernel", action="store", required=False, type=int, default=25, help="Kernel size for CLAHE"
+        "-r",
+        "--input",
+        dest="input",
+        action="store",
+        required=True,
+        help="File path to input image.",
     )
     inputs.add_argument(
-        "--nbins", dest="nbins", action="store", required=False, type=int, default=256, help="Number of bins for CLAHE"
+        "-o",
+        "--output",
+        dest="output",
+        action="store",
+        required=True,
+        help="Path to output image.",
     )
     inputs.add_argument(
-        "-p", "--pixel-size", dest="pixel_size", action="store", type=float, required=False, help="Image pixel size"
+        "--cliplimit",
+        dest="clip",
+        action="store",
+        required=True,
+        type=float,
+        default=0.01,
+        help="Clip Limit for CLAHE",
+    )
+    inputs.add_argument(
+        "--kernel",
+        dest="kernel",
+        action="store",
+        required=False,
+        type=int,
+        default=25,
+        help="Kernel size for CLAHE",
+    )
+    inputs.add_argument(
+        "--nbins",
+        dest="nbins",
+        action="store",
+        required=False,
+        type=int,
+        default=256,
+        help="Number of bins for CLAHE",
+    )
+    inputs.add_argument(
+        "-p",
+        "--pixel-size",
+        dest="pixel_size",
+        action="store",
+        type=float,
+        required=False,
+        help="Image pixel size",
     )
     inputs.add_argument(
         "--tile-size",
@@ -130,17 +170,22 @@ def detect_pixel_size(img_path, pixel_size=None):
 def main(args):
     _version = "0.1.0"
     print(f"Head directory = {args.input}")
-    print(f"ClipLimit = {args.clip}, nbins = {args.nbins}, kernel_size = {args.kernel}, pixel_size = {args.pixel_size}")
+    print(
+        f"ClipLimit = {args.clip}, nbins = {args.nbins}, kernel_size = {args.kernel}, pixel_size = {args.pixel_size}"
+    )
 
     # clahe = cv2.createCLAHE(clipLimit = int(args.clip), tileGridSize=tuple(map(int, args.grid)))
 
-    img_in = AI.AICSImage(args.input)
-    img_dask = img_in.get_image_dask_data("CYX").astype("uint16")
-    adapted = img_dask[0].compute() / 65535
+    img_in = tifffile.imread(args.input).astype("uint16")
+    print(img_in.shape)
+    adapted = img_in / 65535
     adapted = (
-        equalize_adapthist(adapted, kernel_size=args.kernel, clip_limit=args.clip, nbins=args.nbins) * 65535
+        equalize_adapthist(
+            adapted, kernel_size=args.kernel, clip_limit=args.clip, nbins=args.nbins
+        )
+        * 65535
     ).astype("uint16")
-    img_dask[0] = adapted
+    img_in = adapted[np.newaxis, :, :]
 
     # construct levels
     tile_size = args.tile_size
@@ -149,9 +194,9 @@ def main(args):
     if pixel_size is None:
         pixel_size = 1
 
-    dtype = img_dask.dtype
-    base_shape = img_dask[0].shape
-    num_channels = img_dask.shape[0]
+    dtype = img_in.dtype
+    base_shape = img_in[0].shape
+    num_channels = img_in.shape[0]
     num_levels = (np.ceil(np.log2(max(1, max(base_shape) / tile_size))) + 1).astype(int)
     factors = 2 ** np.arange(num_levels)
     shapes = (np.ceil(np.array(base_shape) / factors[:, None])).astype(int)
@@ -170,7 +215,10 @@ def main(args):
         level_full_shapes.append((num_channels, shape[0], shape[1]))
     level_shapes = shapes
     tip_level = np.argmax(np.all(level_shapes < tile_size, axis=1))
-    tile_shapes = [(tile_size, tile_size) if i <= tip_level else None for i in range(len(level_shapes))]
+    tile_shapes = [
+        (tile_size, tile_size) if i <= tip_level else None
+        for i in range(len(level_shapes))
+    ]
 
     software = f"molkart_clahe {_version}"
     pixel_size = pixel_size
@@ -187,7 +235,7 @@ def main(args):
     # write pyramid
     with tifffile.TiffWriter(args.output, ome=True, bigtiff=True) as tiff:
         tiff.write(
-            data=img_dask,
+            data=img_in,
             metadata=metadata,
             shape=level_full_shapes[0],
             subifds=int(num_levels - 1),
@@ -195,9 +243,13 @@ def main(args):
             resolution=(10000 / pixel_size, 10000 / pixel_size, "centimeter"),
             tile=tile_shapes[0],
         )
-        for level, (shape, tile_shape) in enumerate(zip(level_full_shapes[1:], tile_shapes[1:]), 1):
+        for level, (shape, tile_shape) in enumerate(
+            zip(level_full_shapes[1:], tile_shapes[1:]), 1
+        ):
             tiff.write(
-                data=subres_tiles(level, level_full_shapes, tile_shapes, args.output, scale),
+                data=subres_tiles(
+                    level, level_full_shapes, tile_shapes, args.output, scale
+                ),
                 shape=shape,
                 subfiletype=1,
                 dtype=dtype,
