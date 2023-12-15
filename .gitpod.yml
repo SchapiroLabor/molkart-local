@@ -1,0 +1,5 @@
+image: ghcr.io/schapirolabor/molkart-local:latest
+
+vscode:
+  extensions: # based on nf-core.nf-core-extensionpack
+    - esbenp.prettier-vscode # Markdown/CommonMark linting and style checking for Visual Studio Code
