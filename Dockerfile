@@ -23,9 +23,3 @@ SHELL ["/bin/bash", "-c"]
 # This will ensure that the conda environment's python is used
 RUN echo "source activate molkart_local" > ~/.bashrc
 ENV BASH_ENV ~/.bashrc
-
-# Set the working directory
-WORKDIR /local
-
-# Copy the current directory contents into the container at /local
-COPY . .
