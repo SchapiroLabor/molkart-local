@@ -19,10 +19,8 @@ ENV PATH="/opt/conda/envs/molkart_local/bin:$PATH"
 # Set the default shell to bash (already the default)
 SHELL ["/bin/bash", "-c"]
 
-# Activate the conda environment by default when starting a shell
-# This will ensure that the conda environment's python is used
-RUN echo "source activate molkart_local" > ~/.bashrc
-ENV BASH_ENV ~/.bashrc
+RUN echo "source activate molkart_local" > /bashrc
+ENV BASH_ENV /bashrc
 
 # Set the working directory
 WORKDIR /local
