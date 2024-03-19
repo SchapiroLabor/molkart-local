@@ -1,4 +1,4 @@
-# molkart-local
+# molkart-local / MolkartGarage
 Repository for local modules used in nf-core/molkart - https://nf-co.re/molkart/dev.
 
 The purpose of this repository is to have one place to manage local modules for molkart mostly in the context of Docker images, as their functionalities are either overlapping or basic so it is possible to include more tools in one image.
