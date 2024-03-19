@@ -15,16 +15,7 @@ import time
 
 
 def IlastikPrepOME(
-    input,
-    output,
-    crop,
-    crop_size,
-    nonzero_fraction,
-    nuclei_index,
-    num_channels,
-    channelIDs,
-    ring_mask,
-    crop_amount,
+    input, output, crop, crop_size, nonzero_fraction, nuclei_index, num_channels, channelIDs, ring_mask, crop_amount
 ):
     """Function for exporting a large ome.tiff image as an hdf5 image for
     training ilastik random forest pixel classifier for cell segmentation"""
@@ -41,16 +32,10 @@ def IlastikPrepOME(
     # Check to see if ring mask is being applied
     if ring_mask:
         # Read the matlab file
-        mat = scipy.io.loadmat(
-            os.path.join(str(im_dir), (str(im_stem) + "-ROI-nodes.mat"))
-        )
+        mat = scipy.io.loadmat(os.path.join(str(im_dir), (str(im_stem) + "-ROI-nodes.mat")))
         # Get the width and height indices for cropping
-        min_w, max_w = math.floor(abs(mat["nodes"][:, 0]).min()), math.ceil(
-            abs(mat["nodes"][:, 0]).max()
-        )
-        min_h, max_h = math.floor(abs(mat["nodes"][:, 1]).min()), math.ceil(
-            abs(mat["nodes"][:, 1]).max()
-        )
+        min_w, max_w = math.floor(abs(mat["nodes"][:, 0]).min()), math.ceil(abs(mat["nodes"][:, 0]).max())
+        min_h, max_h = math.floor(abs(mat["nodes"][:, 1]).min()), math.ceil(abs(mat["nodes"][:, 1]).max())
 
     # Check to see if the num_channels exists
     if num_channels == None and channelIDs == None:
@@ -72,9 +57,7 @@ def IlastikPrepOME(
             # Check that the two agree
             if num_channels != len(channelIDs):
                 # raise error
-                raise ValueError(
-                    "--num_channels and length of --channelIDs do not agree"
-                )
+                raise ValueError("--num_channels and length of --channelIDs do not agree")
 
     # Check if the number of channels is even or odd
     if (num_channels % 2) == 0:
@@ -115,12 +98,7 @@ def IlastikPrepOME(
         if idx == 0:
             # Create hdf5
             h5 = h5py.File(pathlib.Path(os.path.join(output, h5_name)), "w")
-            h5.create_dataset(
-                str(im_stem),
-                data=im[:, :, :, :],
-                chunks=True,
-                maxshape=(1, None, None, None),
-            )
+            h5.create_dataset(str(im_stem), data=im[:, :, :, :], chunks=True, maxshape=(1, None, None, None))
             h5.close()
         else:
             # Append hdf5 dataset
@@ -157,20 +135,14 @@ def IlastikPrepOME(
             w_lt, w_rt = w - extension_w, w + extension_w
             # Crop the image with these coordinates expanding from center
             crop = im_nuc[:, h_up:h_down, w_lt:w_rt]
-            crop_name = pathlib.Path(
-                os.path.join(output, (im_stem + "_crop" + str(count) + ".hdf5"))
-            )
+            crop_name = pathlib.Path(os.path.join(output, (im_stem + "_crop" + str(count) + ".hdf5")))
             # Check to see if the crop passes the nonzero fraction test
-            if (
-                (crop[0, :, :] > thresh).sum() / (crop.shape[1] * crop.shape[2])
-            ) >= nonzero_fraction:
+            if ((crop[0, :, :] > thresh).sum() / (crop.shape[1] * crop.shape[2])) >= nonzero_fraction:
                 # Export the image to hdf5
                 print("Writing " + crop_name.stem + ".hdf5...")
                 crop = im[:, h_up:h_down, w_lt:w_rt, :]
                 h5_crop = h5py.File(crop_name, "w")
-                h5_crop.create_dataset(
-                    str(im_stem) + "_" + str(count), data=crop, chunks=True
-                )
+                h5_crop.create_dataset(str(im_stem) + "_" + str(count), data=crop, chunks=True)
                 h5_crop.close()
                 print("Finished exporting " + crop_name.stem + ".hdf5")
                 # Add one to the counter
@@ -178,24 +150,13 @@ def IlastikPrepOME(
                 # Add the indices to a table to store the cropped indices
                 indices.update({crop_name.stem: [(h_up, h_down), (w_lt, w_rt)]})
         # Export the indices to a text file to track the cropped regions
-        summary = open(
-            pathlib.Path(os.path.join(output, im_stem) + "_CropSummary.txt"), "w"
-        )
+        summary = open(pathlib.Path(os.path.join(output, im_stem) + "_CropSummary.txt"), "w")
         summary.write(str(indices))
         summary.close()
 
 
 def MultiIlastikOMEPrep(
-    input,
-    output,
-    crop,
-    crop_size,
-    nonzero_fraction,
-    nuclei_index,
-    num_channels,
-    channelIDs,
-    ring_mask,
-    crop_amount,
+    input, output, crop, crop_size, nonzero_fraction, nuclei_index, num_channels, channelIDs, ring_mask, crop_amount
 ):
     """Function for iterating over a list of files and output locations to
     export large ome.tiff images in the correct hdf5 image format for ilastik
@@ -222,11 +183,7 @@ def MultiIlastikOMEPrep(
     else:
         # Check to make sure the output directories and image paths are equal in length
         if len(output) != len(input):
-            raise (
-                ValueError(
-                    "Detected more than one output but not as many directories as images"
-                )
-            )
+            raise (ValueError("Detected more than one output but not as many directories as images"))
         else:
             # Iterate through images and output directories
             for i in range(len(input)):
@@ -264,7 +221,7 @@ def ParseInputOME():
     parser.add_argument("--ring_mask", action="store_true", default=False)
     parser.add_argument("--no-ring_mask", dest="ring_mask", action="store_false")
     parser.add_argument("--crop_amount", type=int)
-    parser.add_argument("--version", action="version", version="0.1.0")
+    parser.add_argument("--version", action="version", version="0.1.1")
 
     args = parser.parse_args()
 

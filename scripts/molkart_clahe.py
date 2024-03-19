@@ -104,7 +104,7 @@ def get_args():
         default=1072,
         help="Tile size for pyramid generation (must be divisible by 16)",
     )
-    inputs.add_argument("--version", action="version", version="0.1.0")
+    inputs.add_argument("--version", action="version", version="0.1.1")
     arg = parser.parse_args()
 
     # Standardize paths

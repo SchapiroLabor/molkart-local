@@ -12,14 +12,12 @@ import time
 
 
 def get_args():
-    parser = AP(
-        description="Stack a list of images into a single image stack using Dask"
-    )
+    parser = AP(description="Stack a list of images into a single image stack using Dask")
     parser.add_argument("-i", "--input", nargs="+", help="List of images to stack")
     parser.add_argument("-o", "--output", dest="output", type=str)
     parser.add_argument("--pixel_size", dest="pixel_size", type=float, default=0.138)
     parser.add_argument("--tile_size", dest="tilesize", type=int, default=1072)
-    parser.add_argument("--version", action="version", version="0.1.0")
+    parser.add_argument("--version", action="version", version="0.1.1")
     return parser.parse_args()
 
 
@@ -40,12 +38,7 @@ def main(args):
 
     palom.pyramid.PyramidSetting.num_levels = num_levels_patch
     palom.pyramid.write_pyramid(
-        [mosaic_out],
-        args.output,
-        channel_names=["stack"],
-        downscale_factor=2,
-        pixel_size=0.138,
-        tile_size=368,
+        [mosaic_out], args.output, channel_names=["stack"], downscale_factor=2, pixel_size=0.138, tile_size=368
     )
 
 

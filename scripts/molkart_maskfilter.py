@@ -18,36 +18,14 @@ def get_args():
     description = """Segmentation mask filtering"""
 
     # Add parser
-    parser = AP(
-        description=description, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+    parser = AP(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # Sections
-    inputs = parser.add_argument_group(
-        title="Required Input", description="Path to required input file"
-    )
+    inputs = parser.add_argument_group(title="Required Input", description="Path to required input file")
+    inputs.add_argument("-r", "--input", dest="input", action="store", required=True, help="File path to input image.")
+    inputs.add_argument("-o", "--output", dest="output", action="store", required=True, help="Path to output image.")
     inputs.add_argument(
-        "-r",
-        "--input",
-        dest="input",
-        action="store",
-        required=True,
-        help="File path to input image.",
-    )
-    inputs.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        action="store",
-        required=True,
-        help="Path to output image.",
-    )
-    inputs.add_argument(
-        "--output_qc",
-        dest="output_qc",
-        action="store",
-        required=False,
-        help="Path to output qc csv file.",
+        "--output_qc", dest="output_qc", action="store", required=False, help="Path to output qc csv file."
     )
     inputs.add_argument(
         "--min_area",
@@ -65,7 +43,7 @@ def get_args():
         default=None,
         help="Upper area (in px) threshold for cell removal",
     )
-    inputs.add_argument("--version", action="version", version="0.1.0")
+    inputs.add_argument("--version", action="version", version="0.1.1")
     arg = parser.parse_args()
 
     # Standardize paths
@@ -77,28 +55,38 @@ def get_args():
 
 
 def filter_areas(mask, min_area=None, max_area=None):
-    labeled_mask = label(mask, background=0)  # Start labeling from 1
+    labeled_mask = label(mask, background=0)
     measure_tmp = regionprops(labeled_mask)
     num_cells = len(measure_tmp)
-    if min_area:
-        small_labels = len([prop for prop in measure_tmp if prop.area < min_area])
+    # Create a mapping between label and area
+    label_area_map = {prop.label: prop.area for prop in measure_tmp}
+
+    if min_area and max_area:
+        small_valid_labels = np.array([label for label, area in label_area_map.items() if area >= min_area])
+        large_valid_labels = np.array([label for label, area in label_area_map.items() if area <= max_area])
+        valid_labels = np.intersect1d(small_valid_labels, large_valid_labels)
+        retained_masks = np.isin(labeled_mask, valid_labels) * labeled_mask
+        small_labels = num_cells - len(small_valid_labels)
+        large_labels = num_cells - len(large_valid_labels)
+        relabeled_mask = label(retained_masks, background=0)
+    elif min_area:
+        valid_labels = np.array([label for label, area in label_area_map.items() if area >= min_area])
+        retained_masks = np.isin(labeled_mask, valid_labels) * labeled_mask
+        large_labels = 0
+        small_labels = num_cells - len(valid_labels)
+        relabeled_mask = label(retained_masks, background=0)
+    elif max_area:
+        valid_labels = np.array([label for label, area in label_area_map.items() if area <= max_area])
+        retained_masks = np.isin(labeled_mask, valid_labels) * labeled_mask
+        large_labels = num_cells - len(valid_labels)
+        small_labels = 0
+        relabeled_mask = label(retained_masks, background=0)
     else:
         small_labels = 0
-        min_area = 0
-    if max_area:
-        large_labels = len([prop for prop in measure_tmp if prop.area > max_area])
-    else:
-        max_area = mask.shape[0] * mask.shape[1]
         large_labels = 0
-    # Create an array to store the filtered mask
-    filtered_mask = np.zeros_like(labeled_mask)
-    counter = 1
-    for prop in measure_tmp:
-        if (min_area <= prop.area <= max_area) and (min_area <= prop.area <= max_area):
-            filtered_mask[labeled_mask == prop.label] = counter
-            counter += 1
+        relabeled_mask = labeled_mask
 
-    return filtered_mask, small_labels, large_labels, num_cells
+    return relabeled_mask, small_labels, large_labels, num_cells
 
 
 def main(args):
