@@ -5,3 +5,6 @@ molkartpy/core/__pycache__/
 molkartpy/utils/__pycache__/
 molkartpy/__pycache__
 molkartpy/testing.ipynb
+.coverage
+tests/__pycache__/
+tests/*/__pycache__/

@@ -1,11 +1,7 @@
-import tifffile
-import dask.array as da
-from ome_types import from_tiff
 import random
 import math
 import numpy as np
 from skimage.filters import threshold_otsu
-
 
 def otsu_from_random_sample(arr, max_pixels=1000000):
     """
