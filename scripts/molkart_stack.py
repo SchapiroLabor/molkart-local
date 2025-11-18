@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license
 import numpy as np
 import argparse
 import tifffile
@@ -17,7 +18,7 @@ def get_args():
     parser.add_argument("-o", "--output", dest="output", type=str)
     parser.add_argument("--pixel_size", dest="pixel_size", type=float, default=0.138)
     parser.add_argument("--tile_size", dest="tilesize", type=int, default=1072)
-    parser.add_argument("--version", action="version", version="0.1.1")
+    parser.add_argument("--version", action="version", version="0.1.0")
     return parser.parse_args()
 
 

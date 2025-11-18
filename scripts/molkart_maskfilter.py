@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license
 import time
 import argparse
 from argparse import ArgumentParser as AP
@@ -43,7 +44,7 @@ def get_args():
         default=None,
         help="Upper area (in px) threshold for cell removal",
     )
-    inputs.add_argument("--version", action="version", version="0.1.1")
+    inputs.add_argument("--version", action="version", version="0.1.0")
     arg = parser.parse_args()
 
     # Standardize paths

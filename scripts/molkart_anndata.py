@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license.
 import pandas as pd
 import numpy as np
 from anndata import AnnData
@@ -23,7 +24,7 @@ def get_args():
     inputs.add_argument(
         "-o", "--output", dest="output", action="store", required=True, help="Path to output anndata object."
     )
-    inputs.add_argument("--version", action="version", version="0.1.1")
+    inputs.add_argument("--version", action="version", version="0.1.0")
     arg = parser.parse_args()
     arg.input = abspath(arg.input)
     arg.output = abspath(arg.output)

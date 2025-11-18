@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license.
 from __future__ import print_function, division
 from distutils.log import error
 import time
@@ -36,65 +37,23 @@ def get_args():
     description = """Easy-to-use, large scale CLAHE"""
 
     # Add parser
-    parser = AP(
-        description=description, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+    parser = AP(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # Sections
-    inputs = parser.add_argument_group(
-        title="Required Input", description="Path to required input file"
+    inputs = parser.add_argument_group(title="Required Input", description="Path to required input file")
+    inputs.add_argument("-r", "--input", dest="input", action="store", required=True, help="File path to input image.")
+    inputs.add_argument("-o", "--output", dest="output", action="store", required=True, help="Path to output image.")
+    inputs.add_argument(
+        "--cliplimit", dest="clip", action="store", required=True, type=float, default=0.01, help="Clip Limit for CLAHE"
     )
     inputs.add_argument(
-        "-r",
-        "--input",
-        dest="input",
-        action="store",
-        required=True,
-        help="File path to input image.",
+        "--kernel", dest="kernel", action="store", required=False, type=int, default=25, help="Kernel size for CLAHE"
     )
     inputs.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        action="store",
-        required=True,
-        help="Path to output image.",
+        "--nbins", dest="nbins", action="store", required=False, type=int, default=256, help="Number of bins for CLAHE"
     )
     inputs.add_argument(
-        "--cliplimit",
-        dest="clip",
-        action="store",
-        required=True,
-        type=float,
-        default=0.01,
-        help="Clip Limit for CLAHE",
-    )
-    inputs.add_argument(
-        "--kernel",
-        dest="kernel",
-        action="store",
-        required=False,
-        type=int,
-        default=25,
-        help="Kernel size for CLAHE",
-    )
-    inputs.add_argument(
-        "--nbins",
-        dest="nbins",
-        action="store",
-        required=False,
-        type=int,
-        default=256,
-        help="Number of bins for CLAHE",
-    )
-    inputs.add_argument(
-        "-p",
-        "--pixel-size",
-        dest="pixel_size",
-        action="store",
-        type=float,
-        required=False,
-        help="Image pixel size",
+        "-p", "--pixel-size", dest="pixel_size", action="store", type=float, required=False, help="Image pixel size"
     )
     inputs.add_argument(
         "--tile-size",
@@ -104,7 +63,7 @@ def get_args():
         default=1072,
         help="Tile size for pyramid generation (must be divisible by 16)",
     )
-    inputs.add_argument("--version", action="version", version="0.1.1")
+    inputs.add_argument("--version", action="version", version="0.1.0")
     arg = parser.parse_args()
 
     # Standardize paths
@@ -170,9 +129,7 @@ def detect_pixel_size(img_path, pixel_size=None):
 def main(args):
     _version = "0.1.0"
     print(f"Head directory = {args.input}")
-    print(
-        f"ClipLimit = {args.clip}, nbins = {args.nbins}, kernel_size = {args.kernel}, pixel_size = {args.pixel_size}"
-    )
+    print(f"ClipLimit = {args.clip}, nbins = {args.nbins}, kernel_size = {args.kernel}, pixel_size = {args.pixel_size}")
 
     # clahe = cv2.createCLAHE(clipLimit = int(args.clip), tileGridSize=tuple(map(int, args.grid)))
 
@@ -180,10 +137,7 @@ def main(args):
     print(img_in.shape)
     adapted = img_in / 65535
     adapted = (
-        equalize_adapthist(
-            adapted, kernel_size=args.kernel, clip_limit=args.clip, nbins=args.nbins
-        )
-        * 65535
+        equalize_adapthist(adapted, kernel_size=args.kernel, clip_limit=args.clip, nbins=args.nbins) * 65535
     ).astype("uint16")
     img_in = adapted[np.newaxis, :, :]
 
@@ -215,10 +169,7 @@ def main(args):
         level_full_shapes.append((num_channels, shape[0], shape[1]))
     level_shapes = shapes
     tip_level = np.argmax(np.all(level_shapes < tile_size, axis=1))
-    tile_shapes = [
-        (tile_size, tile_size) if i <= tip_level else None
-        for i in range(len(level_shapes))
-    ]
+    tile_shapes = [(tile_size, tile_size) if i <= tip_level else None for i in range(len(level_shapes))]
 
     software = f"molkart_clahe {_version}"
     pixel_size = pixel_size
@@ -243,13 +194,9 @@ def main(args):
             resolution=(10000 / pixel_size, 10000 / pixel_size, "centimeter"),
             tile=tile_shapes[0],
         )
-        for level, (shape, tile_shape) in enumerate(
-            zip(level_full_shapes[1:], tile_shapes[1:]), 1
-        ):
+        for level, (shape, tile_shape) in enumerate(zip(level_full_shapes[1:], tile_shapes[1:]), 1):
             tiff.write(
-                data=subres_tiles(
-                    level, level_full_shapes, tile_shapes, args.output, scale
-                ),
+                data=subres_tiles(level, level_full_shapes, tile_shapes, args.output, scale),
                 shape=shape,
                 subfiletype=1,
                 dtype=dtype,

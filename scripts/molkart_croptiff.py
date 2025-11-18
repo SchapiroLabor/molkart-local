@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license
 import ast
 import tifffile as tiff
 import os
@@ -9,7 +10,7 @@ import numpy as np
 
 # Create a function to create crops from a tiff image and a dictionary of crop coordinates
 def create_crops(tiff_image, crop_dict):
-    for index, (crop_name, crop) in enumerate(crop_dict.items()):
+    for index, (crop_name, crop) in enumerate(crop_dict.items(), start=1):
         crop_image = tiff_image[:, crop[0][0] : crop[0][1], crop[1][0] : crop[1][1]]
         basename = os.path.basename(args.input)
         basename = os.path.splitext(basename)[0]
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="Input tiffile.")
     parser.add_argument("-c", "--crop_summary", help="Crop summary file.")
-    parser.add_argument("--version", action="version", version="0.1.1")
+    parser.add_argument("--version", action="version", version="0.1.0")
     args = parser.parse_args()
 
     # reading the crop information from the file

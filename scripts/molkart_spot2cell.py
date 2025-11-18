@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## Written by Kresimir Bestak and Florian Wuennemann and released under the MIT license
 
 ## Import packages
 import pandas as pd
@@ -112,14 +113,16 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--spot_table", help="Spot table to project.")
     parser.add_argument("-c", "--cell_mask", help="Sample ID.")
     parser.add_argument("--output", type=str, help="Output path")
-    parser.add_argument("--version", action="version", version="0.1.1")
+    parser.add_argument("--version", action="version", version="0.1.0")
 
     args = parser.parse_args()
 
     ## Read in spot table
     spot_data = pd.read_csv(
-        args.spot_table, names=["x", "y", "z", "gene", "empty"], sep="\t", header=None, index_col=None
+        args.spot_table, sep="\t", header=None, index_col=None
     )
+    spot_data = spot_data.iloc[:, :4] # drop any column if it exists beyond the first 4 columns (relevant for new MC data)
+    spot_data.columns = ["x", "y", "z", "gene"]
 
     cell_mask = tiff.imread(args.cell_mask)
 
