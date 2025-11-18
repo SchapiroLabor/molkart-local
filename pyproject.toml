@@ -18,6 +18,7 @@ dependencies = [
     "pandas",
     "tifffile",
     "ome_types",
+    "matplotlib",
     "numpy",
     "loguru",
     "dask",
@@ -42,4 +43,4 @@ build-backend = "setuptools.build_meta"
 version = {attr = "molkartpy.__version__"}
 
 [project.scripts]
-
+cropsummary = "molkartpy.CLI.cropsummary:main"

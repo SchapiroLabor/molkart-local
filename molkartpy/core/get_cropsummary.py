@@ -33,16 +33,35 @@ def otsu_from_random_sample(arr, max_pixels=1000000):
 
     return threshold_otsu(sample)
 
-def get_cropSummary(image, crop_amount=4, crop_size=(50, 50), nuclei_index=0, nonzero_fraction=0.3):
-    """Get cropping summary for a given image based on non-zero pixel fraction.
-
-    Args:
-        image (dask.array): Input image as a Dask array.
-        nuclei_index (int): Index of the nuclei channel.
-        nonzero_fraction (float): Fraction how much of the crop can be empty.
+def get_cropSummary(image, crop_amount=4, crop_size=(500, 500), nuclei_index=0, nonzero_fraction=0.4):
     """
+    Create a summary of crop indices for given image.
+    Parameters
+    ----------
+    image : dask.array
+        Input image with shape (channels, height, width).
+    crop_amount : int
+        Number of crops to extract.
+    crop_size : tuple of int
+        Size of each crop (width, height).
+    nuclei_index : int
+        Index of the nuclei channel in the image.
+    nonzero_fraction : float
+        Minimum fraction of non-zero pixels required in the nuclei channel within a crop.
+    Returns
+    -------
+    dict
+        Dictionary with crop IDs as keys and their bounding box indices as values.
+    """
+    if nuclei_index < 0 or nuclei_index >= image.shape[0]:
+        raise ValueError(f"nuclei_index {nuclei_index} is out of bounds for image with {image.shape[0]} channels.")
     nuclei_channel = image[nuclei_index, :, :]
+
     height, width = nuclei_channel.shape
+    if crop_size[1] > height or crop_size[0] > width:
+        raise ValueError("Crop size is larger than image dimensions.")
+    if nonzero_fraction < 0.0 or nonzero_fraction > 1.0:
+        raise ValueError("nonzero_fraction must be between 0.0 and 1.0")
 
     previous_crops = []
     indices = {}
@@ -58,7 +77,7 @@ def get_cropSummary(image, crop_amount=4, crop_size=(50, 50), nuclei_index=0, no
         # compute crop bounding box
         ext_h = crop_size[1] // 2
         ext_w = crop_size[0] // 2
-
+        
         h = random.randint(ext_h, height - ext_h)
         w = random.randint(ext_w, width - ext_w)
 

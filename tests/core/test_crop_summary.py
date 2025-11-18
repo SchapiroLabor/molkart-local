@@ -73,6 +73,20 @@ def test_get_cropSummary_basic():
     assert len(results) <= 3
     assert all(k.startswith("crop_") for k in results.keys())
 
+def test_get_cropSummary_crop_size_larger_than_image():
+    img = np.zeros((1, 50, 50), dtype=np.uint8)
+    img[0, 10:40, 10:40] = 255
+
+    darr = da.from_array(img, chunks=(1, 25, 25))
+
+    with pytest.raises(ValueError, match="Crop size is larger than image dimensions."):
+        get_cropSummary(
+            darr,
+            crop_amount=2,
+            crop_size=(100, 100),  # larger than image
+            nuclei_index=0,
+            nonzero_fraction=0.2,
+        )
 
 def test_get_cropSummary_nonzero_fraction_filtering():
     # very sparse image (mostly zeros → few crops allowed)

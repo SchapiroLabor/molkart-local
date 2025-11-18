@@ -1,9 +1,7 @@
 molkartpy.egg*
 DS.store
-molkartpy/CLI/__pycache__/
-molkartpy/core/__pycache__/
-molkartpy/utils/__pycache__/
-molkartpy/__pycache__
+molkartpy/*/__pycache__/
+molkartpy/__pycache__/
 molkartpy/testing.ipynb
 .coverage
 tests/__pycache__/
